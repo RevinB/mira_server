@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:14.1-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432" # TODO remove at prod stage
+    env_file:
+      - ./.postgres/.postgres.env
+    volumes:
+      - ./.postgres/data:/var/lib/postgresql/data
+  app:
+    build: .
+    restart: unless-stopped #TODO
+    env_file:
+      - ./.app.env
+    ports:
+      - "3000:3000"
+    links:
+      - postgres
