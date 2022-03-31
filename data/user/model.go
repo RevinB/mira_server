@@ -8,6 +8,8 @@ import (
 type Model struct {
 	// ID is a UUID, cannot be changed
 	// links uploads to users
+	// this can be used to regenerate the secret key and JWT ALONE
+	// essentially a "master password"
 	ID string `json:"id" gorm:"primaryKey"`
 
 	// SecretKey is only used for revoking JWTs

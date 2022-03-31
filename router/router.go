@@ -6,10 +6,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	jwtware "github.com/gofiber/jwt/v3"
 	"runtime/debug"
 )
 
-func NewRouter() *fiber.App {
+var jwtMiddleware fiber.Handler
+
+func NewRouter(secretKey string) *fiber.App {
 	r := fiber.New(fiber.Config{ErrorHandler: func(ctx *fiber.Ctx, err error) error {
 		stackString := string(debug.Stack())
 		sentry.CaptureMessage(fmt.Sprintf("ERROR HANDLER\nCTX: %v\nError Message: %v\nStack Trace: %v",
@@ -31,5 +34,11 @@ func NewRouter() *fiber.App {
 
 	r.Use(csrf.New())
 
+	jwtMiddleware = jwtware.New(jwtware.Config{SigningKey: secretKey})
+
 	return r
+}
+
+func GetJwtHandler() fiber.Handler {
+	return jwtMiddleware
 }

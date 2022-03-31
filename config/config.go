@@ -1,8 +1,7 @@
 package config
 
 type Config struct {
-	UrlBase   string
-	AppPort   string
-	MaxBytes  int
+	AppUrl    string
+	S3UrlBase string
 	JWTSecret string
 }

@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"github.com/RevinB/mira_server/config"
 	"github.com/RevinB/mira_server/data"
 	"github.com/RevinB/mira_server/handler"
 	"github.com/RevinB/mira_server/router"
-	"github.com/RevinB/mira_server/utils"
 	"github.com/getsentry/sentry-go"
 	"log"
 	"net/http"
@@ -25,9 +23,8 @@ func main() {
 	}
 
 	cfg := config.Config{
-		UrlBase:   os.Getenv("URL_BASE"),
-		AppPort:   os.Getenv("APP_PORT"),
-		MaxBytes:  utils.GetenvInt("MAX_BYTES"),
+		AppUrl:    os.Getenv("APP_ADDR"),
+		S3UrlBase: os.Getenv("S3_BASE"),
 		JWTSecret: os.Getenv("JWT_SECRET"),
 	}
 
@@ -44,12 +41,13 @@ func main() {
 	}
 	log.Println("Database migration successful")
 
-	iRouter := router.NewRouter()
-	handler.ImplHandler(iRouter)
+	iRouter := router.NewRouter(cfg.JWTSecret)
 
-	srvAddr := fmt.Sprintf("%s:%s", cfg.UrlBase, cfg.AppPort)
+	iHandler := handler.NewHandler(db, cfg)
+	iHandler.ImplHandler(iRouter)
+
 	go func() {
-		if err := iRouter.Listen(srvAddr); err != nil && err != http.ErrServerClosed {
+		if err := iRouter.Listen(cfg.AppUrl); err != nil && err != http.ErrServerClosed {
 			sentry.CaptureException(err)
 			panic("failed to initialize server: " + err.Error())
 		}

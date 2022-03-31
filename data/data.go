@@ -26,16 +26,16 @@ type Store interface {
 	Client() *gorm.DB
 	Cache() *redis.Client
 
-	User() user.Store
-	Upload() upload.Store
+	User() *user.Store
+	Upload() *upload.Store
 }
 
 type storeImpl struct {
 	client *gorm.DB
 	cache  *redis.Client
 
-	user   user.Store
-	upload upload.Store
+	user   *user.Store
+	upload *upload.Store
 }
 
 func NewStore() (Store, error) {
@@ -65,14 +65,14 @@ func NewStore() (Store, error) {
 		return nil, err
 	}
 
-	si := storeImpl{
+	si := &storeImpl{
 		client: db,
 		cache:  rc,
 		user:   user.NewStore(db),
 		upload: upload.NewStore(db),
 	}
 
-	return &si, nil
+	return si, nil
 }
 
 func (si *storeImpl) Client() *gorm.DB {
@@ -83,10 +83,10 @@ func (si *storeImpl) Cache() *redis.Client {
 	return si.cache
 }
 
-func (si *storeImpl) User() user.Store {
+func (si *storeImpl) User() *user.Store {
 	return si.user
 }
 
-func (si *storeImpl) Upload() upload.Store {
+func (si *storeImpl) Upload() *upload.Store {
 	return si.upload
 }

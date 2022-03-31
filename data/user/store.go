@@ -6,8 +6,8 @@ type Store struct {
 	DB *gorm.DB
 }
 
-func NewStore(db *gorm.DB) Store {
-	return Store{DB: db}
+func NewStore(db *gorm.DB) *Store {
+	return &Store{DB: db}
 }
 
 func (s *Store) Create(p *Model) error {
