@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/getsentry/sentry-go"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"runtime/debug"
 )
@@ -27,6 +28,8 @@ func NewRouter() *fiber.App {
 				ctx.String(), e, stackString))
 		},
 	}))
+
+	r.Use(csrf.New())
 
 	return r
 }

@@ -1,5 +1,8 @@
 version: "3.9"
 services:
+  redis:
+    image: redis
+    restart: unless-stopped
   postgres:
     image: postgres:14.1-alpine
     restart: unless-stopped
@@ -18,3 +21,4 @@ services:
       - "3000:3000"
     links:
       - postgres
+      - redis

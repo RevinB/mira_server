@@ -13,8 +13,8 @@ type Handler struct {
 
 func ImplHandler(r *fiber.App) {
 	{
-		userGroup := r.Group("/user")
-		userGroup.Get("/", func(c *fiber.Ctx) error { return c.Status(200).SendString("hi") })
+		//userGroup := r.Group("/user")
+
 	}
 }
 
