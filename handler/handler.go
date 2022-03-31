@@ -24,7 +24,7 @@ func (h *Handler) ImplHandler(r *fiber.App) {
 		userGroup := r.Group("/user")
 		userGroup.Post("/reset", h.UserResetSecret)
 
-		userGroup.Use(router.GetJwtHandler)
+		userGroup.Use(router.GetJwtHandler())
 	}
 }
 

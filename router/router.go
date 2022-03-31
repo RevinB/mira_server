@@ -14,6 +14,10 @@ var jwtMiddleware fiber.Handler
 
 func NewRouter(secretKey string) *fiber.App {
 	r := fiber.New(fiber.Config{ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+		if e, ok := err.(*fiber.Error); ok {
+			return ctx.SendStatus(e.Code)
+		}
+
 		stackString := string(debug.Stack())
 		sentry.CaptureMessage(fmt.Sprintf("ERROR HANDLER\nCTX: %v\nError Message: %v\nStack Trace: %v",
 			ctx.String(), err, stackString))
@@ -34,7 +38,12 @@ func NewRouter(secretKey string) *fiber.App {
 
 	r.Use(csrf.New())
 
-	jwtMiddleware = jwtware.New(jwtware.Config{SigningKey: secretKey})
+	jwtMiddleware = jwtware.New(jwtware.Config{
+		SigningKey: secretKey,
+		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+			return ctx.SendStatus(fiber.StatusForbidden)
+		},
+	})
 
 	return r
 }
