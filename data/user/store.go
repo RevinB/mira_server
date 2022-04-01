@@ -15,7 +15,7 @@ func (s *Store) Create(p *Model) error {
 }
 
 func (s *Store) Update(p *Model) error {
-	return s.DB.Model(&Model{}).Updates(p).Error
+	return s.DB.Model(p).Updates(p).Error
 }
 
 func (s *Store) Delete(p *Model) error {
@@ -24,7 +24,7 @@ func (s *Store) Delete(p *Model) error {
 
 func (s *Store) GetById(id string) (*Model, error) {
 	var retVal Model
-	if err := s.DB.First(&retVal, id).Error; err != nil {
+	if err := s.DB.Where(Model{ID: id}).First(&retVal).Error; err != nil {
 		return nil, err
 	}
 	return &retVal, nil

@@ -1,16 +1,12 @@
 package data
 
 import (
-	"context"
 	"fmt"
-	"github.com/RevinB/mira_server/data/upload"
+	"github.com/RevinB/mira_server/data/file"
 	"github.com/RevinB/mira_server/data/user"
-	"github.com/RevinB/mira_server/utils"
-	"github.com/go-redis/redis/v8"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
-	"time"
 )
 
 var _ Store = (*storeImpl)(nil)
@@ -18,24 +14,22 @@ var _ Store = (*storeImpl)(nil)
 func Migrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		user.Model{},
-		upload.Model{},
+		file.Model{},
 	)
 }
 
 type Store interface {
 	Client() *gorm.DB
-	Cache() *redis.Client
 
-	User() *user.Store
-	Upload() *upload.Store
+	Users() *user.Store
+	Files() *file.Store
 }
 
 type storeImpl struct {
 	client *gorm.DB
-	cache  *redis.Client
 
-	user   *user.Store
-	upload *upload.Store
+	users *user.Store
+	files *file.Store
 }
 
 func NewStore() (Store, error) {
@@ -46,19 +40,6 @@ func NewStore() (Store, error) {
 		os.Getenv("POSTGRES_PASSWORD"),
 		os.Getenv("POSTGRES_DB"))
 
-	rc := redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_ADDR"),
-		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       utils.GetenvInt("REDIS_DB"),
-	})
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	err := rc.Ping(ctx).Err()
-	if err != nil {
-		return nil, err
-	}
-
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
@@ -66,9 +47,8 @@ func NewStore() (Store, error) {
 
 	si := &storeImpl{
 		client: db,
-		cache:  rc,
-		user:   user.NewStore(db),
-		upload: upload.NewStore(db),
+		users:  user.NewStore(db),
+		files:  file.NewStore(db),
 	}
 
 	return si, nil
@@ -78,14 +58,10 @@ func (si *storeImpl) Client() *gorm.DB {
 	return si.client
 }
 
-func (si *storeImpl) Cache() *redis.Client {
-	return si.cache
+func (si *storeImpl) Users() *user.Store {
+	return si.users
 }
 
-func (si *storeImpl) User() *user.Store {
-	return si.user
-}
-
-func (si *storeImpl) Upload() *upload.Store {
-	return si.upload
+func (si *storeImpl) Files() *file.Store {
+	return si.files
 }

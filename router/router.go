@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/getsentry/sentry-go"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"runtime/debug"
+	"time"
 )
 
 func NewRouter() *fiber.App {
@@ -30,6 +32,11 @@ func NewRouter() *fiber.App {
 			sentry.CaptureMessage(fmt.Sprintf("RECOVER MIDDLEWARE\nCTX: %v\nError Message: %v\nStack Trace: %v",
 				ctx.String(), e, stackString))
 		},
+	}))
+
+	r.Use(limiter.New(limiter.Config{
+		Max:        10,
+		Expiration: 60 * time.Second,
 	}))
 
 	return r

@@ -1,7 +1,8 @@
 package config
 
 type Config struct {
-	AppUrl    string
-	S3UrlBase string
-	JWTSecret []byte
+	AppUrl       string
+	FinalUrlBase string
+	S3BucketName string
+	JWTSecret    []byte
 }

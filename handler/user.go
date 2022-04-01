@@ -9,13 +9,13 @@ import (
 )
 
 func (h *Handler) UserResetSecret(c *fiber.Ctx) error {
-	userid := c.FormValue("userid")
+	userid := c.Params("id")
 
 	if userid == "" {
 		return c.Status(fiber.StatusBadRequest).SendString("no form key 'userid' found")
 	}
 
-	userData, err := h.Data().User().GetById(userid)
+	userData, err := h.Data().Users().GetById(userid)
 	if err == gorm.ErrRecordNotFound {
 		return c.Status(fiber.StatusNotFound).SendString("user not found")
 	} else if err != nil {
@@ -27,7 +27,7 @@ func (h *Handler) UserResetSecret(c *fiber.Ctx) error {
 		return err
 	}
 
-	err = h.Data().User().Update(userData)
+	err = h.Data().Users().Update(userData)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (h *Handler) UserCreate(c *fiber.Ctx) error {
 		IsAdmin: false,
 	}
 
-	err := h.Data().User().Create(&dbEntry)
+	err := h.Data().Users().Create(&dbEntry)
 	if err != nil {
 		return err
 	}
@@ -71,24 +71,24 @@ func (h *Handler) UserSelfDelete(c *fiber.Ctx) error {
 
 	// TODO delete files
 
-	return h.Data().User().Delete(userData)
+	return h.Data().Users().Delete(userData)
 }
 
 func (h *Handler) UserForceDelete(c *fiber.Ctx) error {
-	id := c.FormValue("id")
+	id := c.Params("id")
 
 	if id == "" {
 		return fiber.ErrBadRequest
 	}
 
-	userData, err := h.Data().User().GetById(id)
+	userData, err := h.Data().Users().GetById(id)
 	if err == gorm.ErrRecordNotFound {
 		return fiber.ErrNotFound
 	} else if err != nil {
 		return err
 	}
 
-	err = h.Data().User().Delete(userData)
+	err = h.Data().Users().Delete(userData)
 	if err != nil {
 		return err
 	}

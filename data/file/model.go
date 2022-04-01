@@ -1,4 +1,4 @@
-package upload
+package file
 
 import "time"
 
@@ -8,6 +8,8 @@ type Model struct {
 
 	// FileExtension without dot separator
 	FileExtension string `json:"file_extension"`
+
+	MIMEType string `json:"mime_type"`
 
 	// Owner foreign id to users table
 	Owner string `json:"owner" gorm:"not null"`
@@ -20,5 +22,5 @@ type Model struct {
 }
 
 func (Model) TableName() string {
-	return "uploads"
+	return "files"
 }
