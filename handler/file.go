@@ -1,14 +1,12 @@
 package handler
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"github.com/RevinB/mira_server/data/file"
 	"github.com/RevinB/mira_server/data/user"
 	"github.com/RevinB/mira_server/utils"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gofiber/fiber/v2"
-	"io"
 	"regexp"
 	"strconv"
 	"strings"
@@ -38,7 +36,7 @@ func (h *Handler) FileUpload(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	newFileName, err := utils.GenerateRandomString(8)
+	fileKey, err := utils.GenerateRandomString(8)
 	if err != nil {
 		return err
 	}
@@ -53,11 +51,13 @@ func (h *Handler) FileUpload(c *fiber.Ctx) error {
 	}
 
 	// get last match
-	matches := rxp.FindAllString(fileExt, -1)
+	matches := rxp.FindAllString(mpFile.Filename, -1)
 	fileExt = matches[len(matches)-1]
 
+	newFileName := fileKey + fileExt
+
 	cType := "application/octet-stream"
-	if t := c.Get("Content-Type"); t != "" {
+	if t := mpFile.Header.Get("content-type"); t != "" {
 		cType = t
 	}
 
@@ -66,24 +66,26 @@ func (h *Handler) FileUpload(c *fiber.Ctx) error {
 		return err
 	}
 
-	hash := sha256.New()
-	_, err = io.Copy(hash, open)
-	if err != nil {
-		return err
-	}
+	//hash := md5.New()
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//_, err = io.Copy(hash, open)
+	//if err != nil {
+	//	return err
+	//}
 
-	strHash := string(hash.Sum(nil))
+	//strHash := base64.StdEncoding.EncodeToString(hash.Sum(nil))
 
 	uploader := s3manager.NewUploader(h.AWS())
 
 	upParams := &s3manager.UploadInput{
-		Body:           open,
-		Bucket:         utils.NewStringPointer(h.Config().S3BucketName),
-		ChecksumSHA256: utils.NewStringPointer(strHash),
-		Key:            utils.NewStringPointer(newFileName + fileExt),
-		Metadata: map[string]*string{
-			"Content-Type": utils.NewStringPointer(cType),
-		},
+		Body:   open,
+		Bucket: utils.NewStringPointer(h.Config().S3BucketName),
+		//ContentMD5: utils.NewStringPointer(strHash),
+		ContentType: utils.NewStringPointer(cType),
+		Key:         utils.NewStringPointer(newFileName),
 	}
 
 	_, err = uploader.Upload(upParams)
@@ -92,8 +94,8 @@ func (h *Handler) FileUpload(c *fiber.Ctx) error {
 	}
 
 	dbEntry := file.Model{
-		ID:            newFileName,
-		FileExtension: fileExt,
+		ID:            fileKey,
+		FileExtension: strings.TrimPrefix(fileExt, "."),
 		MIMEType:      cType,
 		Owner:         userData.ID,
 	}
@@ -103,5 +105,5 @@ func (h *Handler) FileUpload(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("%s/%s.%s", h.Config().FinalUrlBase, newFileName, fileExt))
+	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("%s/%s", h.Config().FinalUrlBase, newFileName))
 }
