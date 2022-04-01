@@ -4,15 +4,11 @@ import (
 	"fmt"
 	"github.com/getsentry/sentry-go"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	jwtware "github.com/gofiber/jwt/v3"
 	"runtime/debug"
 )
 
-var jwtMiddleware fiber.Handler
-
-func NewRouter(secretKey string) *fiber.App {
+func NewRouter() *fiber.App {
 	r := fiber.New(fiber.Config{ErrorHandler: func(ctx *fiber.Ctx, err error) error {
 		if e, ok := err.(*fiber.Error); ok {
 			return ctx.SendStatus(e.Code)
@@ -36,18 +32,5 @@ func NewRouter(secretKey string) *fiber.App {
 		},
 	}))
 
-	r.Use(csrf.New())
-
-	jwtMiddleware = jwtware.New(jwtware.Config{
-		SigningKey: secretKey,
-		ErrorHandler: func(ctx *fiber.Ctx, err error) error {
-			return ctx.SendStatus(fiber.StatusForbidden)
-		},
-	})
-
 	return r
-}
-
-func GetJwtHandler() fiber.Handler {
-	return jwtMiddleware
 }

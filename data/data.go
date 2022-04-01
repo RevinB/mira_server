@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"github.com/RevinB/mira_server/data/upload"
 	"github.com/RevinB/mira_server/data/user"
+	"github.com/RevinB/mira_server/utils"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -46,11 +46,10 @@ func NewStore() (Store, error) {
 		os.Getenv("POSTGRES_PASSWORD"),
 		os.Getenv("POSTGRES_DB"))
 
-	intDB, _ := strconv.Atoi(os.Getenv("REDIS_DB"))
 	rc := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_ADDR"),
 		Password: os.Getenv("REDIS_PASSWORD"),
-		DB:       intDB,
+		DB:       utils.GetenvInt("REDIS_DB"),
 	})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

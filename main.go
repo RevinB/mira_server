@@ -5,6 +5,7 @@ import (
 	"github.com/RevinB/mira_server/data"
 	"github.com/RevinB/mira_server/handler"
 	"github.com/RevinB/mira_server/router"
+	"github.com/RevinB/mira_server/utils"
 	"github.com/getsentry/sentry-go"
 	"log"
 	"net/http"
@@ -25,7 +26,7 @@ func main() {
 	cfg := config.Config{
 		AppUrl:    os.Getenv("APP_ADDR"),
 		S3UrlBase: os.Getenv("S3_BASE"),
-		JWTSecret: os.Getenv("JWT_SECRET"),
+		JWTSecret: utils.GetenvByteArray("JWT_SECRET"),
 	}
 
 	// new db conn
@@ -41,7 +42,7 @@ func main() {
 	}
 	log.Println("Database migration successful")
 
-	iRouter := router.NewRouter(cfg.JWTSecret)
+	iRouter := router.NewRouter()
 
 	iHandler := handler.NewHandler(db, cfg)
 	iHandler.ImplHandler(iRouter)

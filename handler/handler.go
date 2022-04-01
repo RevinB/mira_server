@@ -3,7 +3,6 @@ package handler
 import (
 	"github.com/RevinB/mira_server/config"
 	"github.com/RevinB/mira_server/data"
-	"github.com/RevinB/mira_server/router"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -24,7 +23,14 @@ func (h *Handler) ImplHandler(r *fiber.App) {
 		userGroup := r.Group("/user")
 		userGroup.Post("/reset", h.UserResetSecret)
 
-		userGroup.Use(router.GetJwtHandler())
+		userGroup.Use(h.JwtMiddleware)
+
+		userGroup.Post("/delete", h.UserSelfDelete)
+
+		userGroup.Use(AdminOnlyMiddleware)
+
+		userGroup.Post("/", h.UserCreate)
+		userGroup.Post("/forcedelete", h.UserForceDelete)
 	}
 }
 

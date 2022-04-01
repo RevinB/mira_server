@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/RevinB/mira_server/data/user"
 	"github.com/RevinB/mira_server/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
@@ -31,15 +32,66 @@ func (h *Handler) UserResetSecret(c *fiber.Ctx) error {
 		return err
 	}
 
-	claims := jwt.MapClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"secret_key": userData.SecretKey,
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	})
 
 	finalToken, err := token.SignedString(h.Config().JWTSecret)
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(fiber.Map{"token": finalToken})
+	return c.Status(fiber.StatusOK).SendString(finalToken)
+}
+
+func (h *Handler) UserCreate(c *fiber.Ctx) error {
+	dbEntry := user.Model{
+		IsAdmin: false,
+	}
+
+	err := h.Data().User().Create(&dbEntry)
+	if err != nil {
+		return err
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"secret_key": dbEntry.SecretKey,
+	})
+
+	finalToken, err := token.SignedString(h.Config().JWTSecret)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).SendString(finalToken)
+}
+
+func (h *Handler) UserSelfDelete(c *fiber.Ctx) error {
+	userData := c.Locals("user").(*user.Model)
+
+	// TODO delete files
+
+	return h.Data().User().Delete(userData)
+}
+
+func (h *Handler) UserForceDelete(c *fiber.Ctx) error {
+	id := c.FormValue("id")
+
+	if id == "" {
+		return fiber.ErrBadRequest
+	}
+
+	userData, err := h.Data().User().GetById(id)
+	if err == gorm.ErrRecordNotFound {
+		return fiber.ErrNotFound
+	} else if err != nil {
+		return err
+	}
+
+	err = h.Data().User().Delete(userData)
+	if err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusOK)
 }

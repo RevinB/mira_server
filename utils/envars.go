@@ -15,3 +15,8 @@ func GetenvInt(key string) int {
 
 	return ret
 }
+
+// GetenvByteArray
+func GetenvByteArray(key string) []byte {
+	return []byte(os.Getenv(key))
+}

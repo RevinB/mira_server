@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/RevinB/mira_server/utils"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -26,6 +27,13 @@ func (Model) TableName() string {
 func (m *Model) BeforeCreate(_ *gorm.DB) error {
 	if m.ID == "" {
 		m.ID = uuid.New().String()
+	}
+	if m.SecretKey == "" {
+		var err error
+		m.SecretKey, err = utils.GenerateRandomString(32)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
