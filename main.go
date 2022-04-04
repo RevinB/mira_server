@@ -38,7 +38,7 @@ func main() {
 	}
 	log.Println("Database connection successful")
 
-	err = data.Migrate(db.Client())
+	err = data.Migrate(db.Client)
 	if err != nil {
 		panic("database migration failed: " + err.Error())
 	}

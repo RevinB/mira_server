@@ -8,16 +8,16 @@ import (
 )
 
 type Handler struct {
-	data   data.Store
-	config config.Config
-	aws    *session.Session
+	Data   *data.Store
+	Config config.Config
+	AWS    *session.Session
 }
 
-func NewHandler(data data.Store, cfg config.Config, a *session.Session) Handler {
+func NewHandler(data *data.Store, cfg config.Config, a *session.Session) Handler {
 	return Handler{
-		data:   data,
-		config: cfg,
-		aws:    a,
+		Data:   data,
+		Config: cfg,
+		AWS:    a,
 	}
 }
 
@@ -46,16 +46,4 @@ func (h *Handler) ImplHandler(r *fiber.App) {
 		//fileGroup.Use(AdminOnlyMiddleware)
 		//fileGroup.Get("/:id")
 	}
-}
-
-func (h *Handler) Data() data.Store {
-	return h.data
-}
-
-func (h *Handler) Config() config.Config {
-	return h.config
-}
-
-func (h *Handler) AWS() *session.Session {
-	return h.aws
 }

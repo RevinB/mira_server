@@ -15,7 +15,7 @@ func (h *Handler) JwtMiddleware(c *fiber.Ctx) error {
 			return nil, fiber.ErrExpectationFailed
 		}
 
-		return h.Config().JWTSecret, nil
+		return h.Config.JWTSecret, nil
 	})
 	if err != nil {
 		return fiber.ErrUnauthorized
@@ -23,7 +23,7 @@ func (h *Handler) JwtMiddleware(c *fiber.Ctx) error {
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		secKey := claims["secret_key"].(string)
-		userData, err := h.Data().Users().GetByKey(secKey)
+		userData, err := h.Data.Users.GetByKey(secKey)
 		if err != nil {
 			return err
 		}

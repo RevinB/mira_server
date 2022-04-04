@@ -15,7 +15,7 @@ func (h *Handler) UserResetSecret(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("no form key 'userid' found")
 	}
 
-	userData, err := h.Data().Users().GetById(userid)
+	userData, err := h.Data.Users.GetById(userid)
 	if err == gorm.ErrRecordNotFound {
 		return c.Status(fiber.StatusNotFound).SendString("user not found")
 	} else if err != nil {
@@ -27,7 +27,7 @@ func (h *Handler) UserResetSecret(c *fiber.Ctx) error {
 		return err
 	}
 
-	err = h.Data().Users().Update(userData)
+	err = h.Data.Users.Update(userData)
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func (h *Handler) UserResetSecret(c *fiber.Ctx) error {
 		"secret_key": userData.SecretKey,
 	})
 
-	finalToken, err := token.SignedString(h.Config().JWTSecret)
+	finalToken, err := token.SignedString(h.Config.JWTSecret)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (h *Handler) UserCreate(c *fiber.Ctx) error {
 		IsAdmin: false,
 	}
 
-	err := h.Data().Users().Create(&dbEntry)
+	err := h.Data.Users.Create(&dbEntry)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (h *Handler) UserCreate(c *fiber.Ctx) error {
 		"secret_key": dbEntry.SecretKey,
 	})
 
-	finalToken, err := token.SignedString(h.Config().JWTSecret)
+	finalToken, err := token.SignedString(h.Config.JWTSecret)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (h *Handler) UserSelfDelete(c *fiber.Ctx) error {
 
 	// TODO delete files
 
-	return h.Data().Users().Delete(userData)
+	return h.Data.Users.Delete(userData)
 }
 
 func (h *Handler) UserForceDelete(c *fiber.Ctx) error {
@@ -81,14 +81,14 @@ func (h *Handler) UserForceDelete(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	userData, err := h.Data().Users().GetById(id)
+	userData, err := h.Data.Users.GetById(id)
 	if err == gorm.ErrRecordNotFound {
 		return fiber.ErrNotFound
 	} else if err != nil {
 		return err
 	}
 
-	err = h.Data().Users().Delete(userData)
+	err = h.Data.Users.Delete(userData)
 	if err != nil {
 		return err
 	}

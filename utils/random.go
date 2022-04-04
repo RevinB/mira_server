@@ -8,6 +8,8 @@ import (
 	"math/big"
 )
 
+// Credit to https://gist.github.com/dopey/c69559607800d2f2f90b1b1ed4e550fb
+
 func init() {
 	assertAvailablePRNG()
 }
@@ -64,24 +66,4 @@ func GenerateRandomString(n int) (string, error) {
 func GenerateRandomStringURLSafe(n int) (string, error) {
 	b, err := GenerateRandomBytes(n)
 	return base64.URLEncoding.EncodeToString(b), err
-}
-
-func main() {
-	// Example: this will give us a 44 byte, base64 encoded output
-	token, err := GenerateRandomStringURLSafe(32)
-	if err != nil {
-		// Serve an appropriately vague error to the
-		// user, but log the details internally.
-		panic(err)
-	}
-	fmt.Println(token)
-
-	// Example: this will give us a 32 byte output
-	token, err = GenerateRandomString(32)
-	if err != nil {
-		// Serve an appropriately vague error to the
-		// user, but log the details internally.
-		panic(err)
-	}
-	fmt.Println(token)
 }

@@ -9,30 +9,14 @@ import (
 	"os"
 )
 
-var _ Store = (*storeImpl)(nil)
+type Store struct {
+	Client *gorm.DB
 
-func Migrate(db *gorm.DB) error {
-	return db.AutoMigrate(
-		user.Model{},
-		file.Model{},
-	)
+	Users *user.Store
+	Files *file.Store
 }
 
-type Store interface {
-	Client() *gorm.DB
-
-	Users() *user.Store
-	Files() *file.Store
-}
-
-type storeImpl struct {
-	client *gorm.DB
-
-	users *user.Store
-	files *file.Store
-}
-
-func NewStore() (Store, error) {
+func NewStore() (*Store, error) {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_PORT"),
@@ -45,23 +29,18 @@ func NewStore() (Store, error) {
 		return nil, err
 	}
 
-	si := &storeImpl{
-		client: db,
-		users:  user.NewStore(db),
-		files:  file.NewStore(db),
+	si := &Store{
+		Client: db,
+		Users:  user.NewStore(db),
+		Files:  file.NewStore(db),
 	}
 
 	return si, nil
 }
 
-func (si *storeImpl) Client() *gorm.DB {
-	return si.client
-}
-
-func (si *storeImpl) Users() *user.Store {
-	return si.users
-}
-
-func (si *storeImpl) Files() *file.Store {
-	return si.files
+func Migrate(db *gorm.DB) error {
+	return db.AutoMigrate(
+		user.Model{},
+		file.Model{},
+	)
 }

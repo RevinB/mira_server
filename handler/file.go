@@ -78,11 +78,11 @@ func (h *Handler) FileUpload(c *fiber.Ctx) error {
 
 	//strHash := base64.StdEncoding.EncodeToString(hash.Sum(nil))
 
-	uploader := s3manager.NewUploader(h.AWS())
+	uploader := s3manager.NewUploader(h.AWS)
 
 	upParams := &s3manager.UploadInput{
 		Body:   open,
-		Bucket: utils.NewStringPointer(h.Config().S3BucketName),
+		Bucket: utils.NewStringPointer(h.Config.S3BucketName),
 		//ContentMD5: utils.NewStringPointer(strHash),
 		ContentType: utils.NewStringPointer(cType),
 		Key:         utils.NewStringPointer(newFileName),
@@ -100,10 +100,10 @@ func (h *Handler) FileUpload(c *fiber.Ctx) error {
 		Owner:         userData.ID,
 	}
 
-	err = h.Data().Files().Create(&dbEntry)
+	err = h.Data.Files.Create(&dbEntry)
 	if err != nil {
 		return err
 	}
 
-	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("%s/%s", h.Config().FinalUrlBase, newFileName))
+	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("%s/%s", h.Config.FinalUrlBase, newFileName))
 }
