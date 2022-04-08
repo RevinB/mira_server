@@ -82,11 +82,11 @@ func (h *Handler) FileUpload(c *fiber.Ctx) error {
 
 	//strHash := base64.StdEncoding.EncodeToString(hash.Sum(nil))
 
-	uploader := s3manager.NewUploader(h.AWS)
+	uploader := s3manager.NewUploader(h.AWSSession)
 
 	upParams := &s3manager.UploadInput{
 		Body:   open,
-		Bucket: utils.NewStringPointer(h.Config.S3BucketName),
+		Bucket: h.Config.S3BucketName,
 		//ContentMD5: utils.NewStringPointer(strHash),
 		ContentType: utils.NewStringPointer(cType),
 		Key:         utils.NewStringPointer(newFileName),
@@ -134,18 +134,17 @@ func (h *Handler) FileDelete(c *fiber.Ctx) error {
 
 	fullName := fileData.ID + "." + fileData.FileExtension
 	doi := s3.DeleteObjectInput{
-		Bucket: utils.NewStringPointer(h.Config.S3BucketName),
+		Bucket: h.Config.S3BucketName,
 		Key:    utils.NewStringPointer(fullName),
 	}
 
-	s3Client := s3.New(h.AWS)
-	_, err = s3Client.DeleteObject(&doi)
+	_, err = h.S3Client.DeleteObject(&doi)
 	if err != nil {
 		return err
 	}
 
 	objInval := cloudfront.CreateInvalidationInput{
-		DistributionId: utils.NewStringPointer(h.Config.CloudfrontDistID),
+		DistributionId: h.Config.CloudfrontDistID,
 		InvalidationBatch: &cloudfront.InvalidationBatch{
 			CallerReference: utils.NewStringPointer(strconv.Itoa(int(time.Now().UnixNano()))),
 			Paths: &cloudfront.Paths{
@@ -155,8 +154,7 @@ func (h *Handler) FileDelete(c *fiber.Ctx) error {
 		},
 	}
 
-	cfClient := cloudfront.New(h.AWS)
-	_, err = cfClient.CreateInvalidation(&objInval)
+	_, err = h.CfClient.CreateInvalidation(&objInval)
 	if err != nil {
 		return err
 	}

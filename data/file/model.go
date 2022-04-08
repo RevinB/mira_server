@@ -16,9 +16,6 @@ type Model struct {
 
 	// CreatedAt automatically handled by gorm
 	CreatedAt time.Time `json:"created_at" gorm:"not null"`
-
-	// DeletedAt automatically handled by gorm
-	DeletedAt *time.Time `json:"deleted_at"`
 }
 
 func (Model) TableName() string {
