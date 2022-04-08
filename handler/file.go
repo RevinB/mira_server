@@ -5,11 +5,15 @@ import (
 	"github.com/RevinB/mira_server/data/file"
 	"github.com/RevinB/mira_server/data/user"
 	"github.com/RevinB/mira_server/utils"
+	"github.com/aws/aws-sdk-go/service/cloudfront"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const maxUploadLen = 1000 * 1000 * 5000
@@ -106,4 +110,61 @@ func (h *Handler) FileUpload(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).SendString(fmt.Sprintf("%s/%s", h.Config.FinalUrlBase, newFileName))
+}
+
+func (h *Handler) FileDelete(c *fiber.Ctx) error {
+	userData := c.Locals("user").(*user.Model)
+
+	// takes in file ID without extension, as it should be unique
+	fileid := c.Params("fileid")
+	if fileid == "" {
+		return c.Status(fiber.StatusBadRequest).SendString("no file specified")
+	}
+
+	fileData, err := h.Data.Files.GetById(fileid)
+	if err == gorm.ErrRecordNotFound {
+		return c.Status(fiber.StatusNotFound).SendString("file not found")
+	} else if err != nil {
+		return err
+	}
+
+	if fileData.Owner != userData.ID {
+		return c.Status(fiber.StatusForbidden).SendString("you don't own that file")
+	}
+
+	fullName := fileData.ID + "." + fileData.FileExtension
+	doi := s3.DeleteObjectInput{
+		Bucket: utils.NewStringPointer(h.Config.S3BucketName),
+		Key:    utils.NewStringPointer(fullName),
+	}
+
+	s3Client := s3.New(h.AWS)
+	_, err = s3Client.DeleteObject(&doi)
+	if err != nil {
+		return err
+	}
+
+	objInval := cloudfront.CreateInvalidationInput{
+		DistributionId: utils.NewStringPointer(h.Config.CloudfrontDistID),
+		InvalidationBatch: &cloudfront.InvalidationBatch{
+			CallerReference: utils.NewStringPointer(strconv.Itoa(int(time.Now().UnixNano()))),
+			Paths: &cloudfront.Paths{
+				Items:    []*string{utils.NewStringPointer("/" + fullName)},
+				Quantity: utils.NewInt64Pointer(1),
+			},
+		},
+	}
+
+	cfClient := cloudfront.New(h.AWS)
+	_, err = cfClient.CreateInvalidation(&objInval)
+	if err != nil {
+		return err
+	}
+
+	err = h.Data.Files.Delete(fileData)
+	if err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusOK)
 }

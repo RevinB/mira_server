@@ -25,10 +25,11 @@ func main() {
 	}
 
 	cfg := config.Config{
-		AppUrl:       os.Getenv("APP_ADDR"),
-		FinalUrlBase: os.Getenv("FINAL_URL_BASE"),
-		S3BucketName: os.Getenv("AWS_S3_BUCKET_NAME"),
-		JWTSecret:    utils.GetenvByteArray("JWT_SECRET"),
+		AppUrl:           os.Getenv("APP_ADDR"),
+		FinalUrlBase:     os.Getenv("FINAL_URL_BASE"),
+		S3BucketName:     os.Getenv("AWS_S3_BUCKET_NAME"),
+		CloudfrontDistID: os.Getenv("CLOUDFRONT_DISTRIBUTION_ID"),
+		JWTSecret:        utils.GetenvByteArray("JWT_SECRET"),
 	}
 
 	// new db conn

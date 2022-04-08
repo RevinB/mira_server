@@ -18,6 +18,10 @@ func (s *Store) Update(p *Model) error {
 	return s.DB.Model(Model{}).Updates(p).Error
 }
 
+func (s *Store) Delete(p *Model) error {
+	return s.DB.Delete(p).Error
+}
+
 func (s *Store) GetById(id string) (*Model, error) {
 	var retVal Model
 	if err := s.DB.Where(Model{ID: id}).First(&retVal).Error; err != nil {
