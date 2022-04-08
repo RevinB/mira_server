@@ -47,9 +47,9 @@ func (h *Handler) ImplHandler(r *fiber.App) {
 		fileGroup.Use(h.JwtMiddleware)
 
 		fileGroup.Post("/", h.FileUpload)
-		fileGroup.Delete("/:fileid", h.FileDelete)
+		fileGroup.Delete("/:id", h.FileDelete)
 
-		//fileGroup.Use(AdminOnlyMiddleware)
-		//fileGroup.Get("/:id")
+		fileGroup.Use(AdminOnlyMiddleware)
+		fileGroup.Get("/:id", h.FileGetInfo)
 	}
 }

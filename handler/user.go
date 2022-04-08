@@ -157,6 +157,10 @@ func (h *Handler) UserForceDelete(c *fiber.Ctx) error {
 		return err
 	}
 
+	if userData.IsAdmin {
+		return c.SendStatus(fiber.StatusForbidden)
+	}
+
 	files, err := h.Data.Files.GetAllByUser(userData.ID)
 	if err != nil {
 		return err

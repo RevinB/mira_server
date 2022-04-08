@@ -116,7 +116,7 @@ func (h *Handler) FileDelete(c *fiber.Ctx) error {
 	userData := c.Locals("user").(*user.Model)
 
 	// takes in file ID without extension, as it should be unique
-	fileid := c.Params("fileid")
+	fileid := c.Params("id")
 	if fileid == "" {
 		return c.Status(fiber.StatusBadRequest).SendString("no file specified")
 	}
@@ -128,7 +128,7 @@ func (h *Handler) FileDelete(c *fiber.Ctx) error {
 		return err
 	}
 
-	if fileData.Owner != userData.ID {
+	if !userData.IsAdmin && fileData.Owner != userData.ID {
 		return c.Status(fiber.StatusForbidden).SendString("you don't own that file")
 	}
 
@@ -165,4 +165,17 @@ func (h *Handler) FileDelete(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusOK)
+}
+
+func (h *Handler) FileGetInfo(c *fiber.Ctx) error {
+	fileId := c.Params("id")
+
+	fileData, err := h.Data.Files.GetById(fileId)
+	if err == gorm.ErrRecordNotFound {
+		return c.Status(fiber.StatusNotFound).SendString("file not found")
+	} else if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fileData)
 }
